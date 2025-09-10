@@ -103,6 +103,7 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
+    # تثبيت Android SDK
     - name: Install Android SDK cmdline-tools
       run: |
         sudo apt-get update -y
@@ -114,10 +115,12 @@ jobs:
         mv cmdline-tools latest
         echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
         echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
     - name: Accept Android Licenses
       run: yes | sdkmanager --licenses
+
+    - name: Accept Android Licenses via Flutter
+      run: yes | flutter doctor --android-licenses
 
     - run: |
         flutter config --no-analytics
@@ -145,6 +148,7 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
+    # تثبيت Android SDK
     - name: Install Android SDK cmdline-tools
       run: |
         sudo apt-get update -y
@@ -156,10 +160,12 @@ jobs:
         mv cmdline-tools latest
         echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
         echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
     - name: Accept Android Licenses
       run: yes | sdkmanager --licenses
+
+    - name: Accept Android Licenses via Flutter
+      run: yes | flutter doctor --android-licenses
 
     - run: |
         flutter config --no-analytics
