@@ -35,6 +35,7 @@ jobs:
           flutter doctor || true
       - run: |
           flutter config --enable-linux-desktop --no-analytics
+          mkdir -p build/linux
           flet export linux --output build/linux/app || true
       - uses: actions/upload-artifact@v4
         with:
@@ -56,6 +57,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-macos-desktop --no-analytics
+          mkdir -p build/macos
           flet export macos --output build/macos/app || true
       - uses: actions/upload-artifact@v4
         with:
@@ -77,6 +79,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-windows-desktop --no-analytics
+          mkdir -p build/windows
           flet export windows --output build/windows/app.exe || exit 0
       - uses: actions/upload-artifact@v4
         with:
