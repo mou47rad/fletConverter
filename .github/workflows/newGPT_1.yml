@@ -35,10 +35,7 @@ jobs:
           flutter doctor || true
       - run: |
           flutter config --enable-linux-desktop --no-analytics
-          flet build linux --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
-      - run: |
-          echo "Linux build folder content:"
-          ls -R build/linux || true
+          flet export linux --output build/linux/app || true
       - uses: actions/upload-artifact@v4
         with:
           name: linux-build
@@ -59,10 +56,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-macos-desktop --no-analytics
-          flet build macos --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
-      - run: |
-          echo "macOS build folder content:"
-          ls -R build/macos || true
+          flet export macos --output build/macos/app || true
       - uses: actions/upload-artifact@v4
         with:
           name: macos-build
@@ -83,10 +77,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-windows-desktop --no-analytics
-          flet build windows --verbose --build-number=$env:BUILD_NUMBER --build-version=$env:BUILD_VERSION || exit 0
-      - run: |
-          echo "Windows build folder content:"
-          dir build\windows || true
+          flet export windows --output build/windows/app.exe || exit 0
       - uses: actions/upload-artifact@v4
         with:
           name: windows-build
@@ -126,14 +117,12 @@ jobs:
         run: yes | flutter doctor --android-licenses || true
       - run: |
           flutter config --no-analytics
-          flet build apk --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
-      - run: |
-          echo "APK build folder content:"
-          ls -R build/apk || true
+          mkdir -p build/apk
+          flet export apk --output build/apk/app.apk --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
       - uses: actions/upload-artifact@v4
         with:
           name: apk-build
-          path: build/apk
+          path: build/apk/app.apk
 
   build-aab:
     runs-on: ubuntu-latest
@@ -169,14 +158,12 @@ jobs:
         run: yes | flutter doctor --android-licenses || true
       - run: |
           flutter config --no-analytics
-          flet build aab --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
-      - run: |
-          echo "AAB build folder content:"
-          ls -R build/aab || true
+          mkdir -p build/aab
+          flet export aab --output build/aab/app.aab --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
       - uses: actions/upload-artifact@v4
         with:
           name: aab-build
-          path: build/aab
+          path: build/aab/app.aab
 
   build-ipa:
     runs-on: macos-latest
@@ -193,11 +180,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-macos-desktop --no-analytics
-          flet build ipa --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
-      - run: |
-          echo "IPA build folder content:"
-          ls -R build/ipa || true
+          mkdir -p build/ipa
+          flet export ipa --output build/ipa/app.ipa --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
       - uses: actions/upload-artifact@v4
         with:
           name: ipa-build
-          path: build/ipa
+          path: build/ipa/app.ipa
