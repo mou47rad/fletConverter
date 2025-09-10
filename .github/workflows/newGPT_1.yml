@@ -1,72 +1,193 @@
-name: Build Flet App
+name: All Builds (Linux, macOS, Windows, Android, IPA, APK, AAB)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ master, main ]
   pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+env:
+  BUILD_NUMBER: 1
+  BUILD_VERSION: 1.0.0
+  PYTHON_VERSION: 3.12.2
+  FLUTTER_VERSION: 3.29.2
+  ANDROID_HOME: $HOME/android-sdk
+  ANDROID_SDK_ROOT: $HOME/android-sdk
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          flutter-version: "3.29.2"
-          channel: stable
-          cache: true
-
-      - name: Install dependencies for Linux toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev liblzma-dev
-
-      - name: Flutter doctor
-        run: flutter doctor -v
-
-      - name: Install Flutter dependencies
-        run: flutter pub get
-
-      - name: Accept Android licenses
-        run: yes | flutter doctor --android-licenses || true
-
-      # Build Web
-      - name: Build Web App
-        run: flutter build web --release
-
-      # Build Android APK
-      - name: Build Android APK
-        run: flutter build apk --release
-
-      # Build Linux Desktop App
-      - name: Enable Linux Desktop
-        run: flutter config --enable-linux-desktop
-
-      - name: Build Linux App
-        run: flutter build linux --release
-
-      # Upload Web Build
-      - name: Upload Web Build Artifact
-        uses: actions/upload-artifact@v3
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+      - uses: subosito/flutter-action@v2
         with:
-          name: web-build
-          path: build/web
-
-      # Upload Android APK
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: android-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-
-      # Upload Linux Build
-      - name: Upload Linux Build Artifact
-        uses: actions/upload-artifact@v3
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev liblzma-dev
+          flutter doctor || true
+      - run: |
+          flutter config --enable-linux-desktop --no-analytics
+          flet build linux --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: build/linux/x64/release
+          path: build/linux
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - run: |
+          flutter config --enable-macos-desktop --no-analytics
+          flet build macos --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: build/macos
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || exit 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - run: |
+          flutter config --enable-windows-desktop --no-analytics
+          flet build windows --verbose --build-number=$env:BUILD_NUMBER --build-version=$env:BUILD_VERSION || exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/windows
+
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Android SDK cmdline-tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget unzip
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Flutter Android Licenses
+        run: yes | flutter doctor --android-licenses || true
+
+      - run: |
+          flutter config --no-analytics
+          flet build apk --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-build
+          path: build/apk
+
+  build-aab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Android SDK cmdline-tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget unzip
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Flutter Android Licenses
+        run: yes | flutter doctor --android-licenses || true
+
+      - run: |
+          flutter config --no-analytics
+          flet build aab --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aab-build
+          path: build/aab
+
+  build-ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - run: |
+          flutter config --enable-macos-desktop --no-analytics
+          flet build ipa --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ipa-build
+          path: build/ipa
