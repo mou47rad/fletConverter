@@ -25,18 +25,20 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           sudo apt-get update -y
           sudo apt-get install -y ninja-build libgtk-3-dev liblzma-dev
-          flutter doctor || true
+          flutter doctor
       - run: |
           flutter config --enable-linux-desktop --no-analytics
+          flet doctor
           mkdir -p build/linux
-          flet export linux --output build/linux/app --release || true
+          flet export linux --output build/linux/app --release
+          ls -la build/linux
       - uses: actions/upload-artifact@v4
         with:
           name: linux-build
@@ -51,14 +53,16 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-macos-desktop --no-analytics
+          flet doctor
           mkdir -p build/macos
-          flet export macos --output build/macos/app --release || true
+          flet export macos --output build/macos/app --release
+          ls -la build/macos
       - uses: actions/upload-artifact@v4
         with:
           name: macos-build
@@ -73,14 +77,16 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || exit 0
+          pip install -r requirements.txt
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-windows-desktop --no-analytics
+          flet doctor
           mkdir -p build/windows
-          flet export windows --output build/windows/app.exe --release || exit 0
+          flet export windows --output build/windows/app.exe --release
+          dir build\windows
       - uses: actions/upload-artifact@v4
         with:
           name: windows-build
@@ -95,7 +101,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -115,13 +121,15 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
       - name: Accept Android Licenses
-        run: yes | sdkmanager --licenses || true
+        run: yes | sdkmanager --licenses
       - name: Flutter Android Licenses
-        run: yes | flutter doctor --android-licenses || true
+        run: yes | flutter doctor --android-licenses
       - run: |
           flutter config --no-analytics
+          flet doctor
           mkdir -p build/apk
-          flet export apk --output build/apk/app.apk --release --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+          flet export apk --output build/apk/app.apk --release --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+          ls -la build/apk
       - uses: actions/upload-artifact@v4
         with:
           name: apk-build
@@ -136,7 +144,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -156,13 +164,15 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
       - name: Accept Android Licenses
-        run: yes | sdkmanager --licenses || true
+        run: yes | sdkmanager --licenses
       - name: Flutter Android Licenses
-        run: yes | flutter doctor --android-licenses || true
+        run: yes | flutter doctor --android-licenses
       - run: |
           flutter config --no-analytics
+          flet doctor
           mkdir -p build/aab
-          flet export aab --output build/aab/app.aab --release --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+          flet export aab --output build/aab/app.aab --release --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+          ls -la build/aab
       - uses: actions/upload-artifact@v4
         with:
           name: aab-build
@@ -177,14 +187,16 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - run: |
           flutter config --enable-macos-desktop --no-analytics
+          flet doctor
           mkdir -p build/ipa
-          flet export ipa --simulator --output build/ipa/app.ipa --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION || true
+          flet export ipa --simulator --output build/ipa/app.ipa --release --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+          ls -la build/ipa
       - uses: actions/upload-artifact@v4
         with:
           name: ipa-build
